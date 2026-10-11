@@ -1,0 +1,35 @@
+name: Update M3U Playlist Redirects
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Runs every 12 hours. Adjust as needed.
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+
+jobs:
+  update-playlist:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests
+
+      - name: Run Update Script
+        run: |
+          python roku.py
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add playlists/roku_all.m3u
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update M3U redirect links [skip ci]" && git push)
